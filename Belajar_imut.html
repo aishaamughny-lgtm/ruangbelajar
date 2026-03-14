@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruang Belajar Imut - Full Version</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- React & Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        body { font-family: 'Quicksand', sans-serif; background-color: #FDFBF0; color: #332D29; margin: 0; padding: 0; }
+        @keyframes fall { to { transform: translateY(110vh); } }
+        @keyframes sway {
+            0% { transform: translateY(0vh) rotate(0deg); margin-left: 0; }
+            25% { margin-left: 60px; }
+            75% { margin-left: -60px; }
+            100% { transform: translateY(110vh) rotate(360deg); margin-left: 0; }
+        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .character-bounce { animation: bounce 3s infinite ease-in-out; transform-origin: bottom; }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.02); }
+        }
+        .rain-drop { position: absolute; width: 2px; height: 15px; background: #AEE2FF; pointer-events: none; animation: fall 0.8s linear infinite; }
+        .leaf { position: absolute; pointer-events: none; animation: sway 4s linear infinite; top: -20px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const animals = {
+            cat: {
+                name: "CIMOL", emoji: "🐱",
+                msg: ["Fokus ya... aku akan menemanimu.", "Meow! Kamu sudah belajar hebat!", "Ayo selesaikan tugasmu!"],
+                svg: (
+                    <g>
+                        <path d="M65 65 L50 15 L85 55 M135 65 L150 15 L115 55" fill="#9D8A78" stroke="#332D29" strokeWidth="4" strokeLinejoin="round"/>
+                        <path d="M45 105 C45 55 155 55 155 105 C155 155 125 175 100 175 C75 175 45 155 45 105" fill="#F4F1E6" stroke="#332D29" strokeWidth="4"/>
+                        <circle cx="78" cy="105" r="20" fill="#1A1A1A"/><circle cx="122" cy="105" r="20" fill="#1A1A1A"/>
+                        <circle cx="72" cy="98" r="5" fill="white"/><circle cx="116" cy="98" r="5" fill="white"/>
+                        <ellipse cx="100" cy="120" rx="7" ry="4" fill="#9D8A78" stroke="#332D29" strokeWidth="2"/>
+                    </g>
+                )
+            },
+            dog: {
+                name: "POCKY", emoji: "🐶",
+                msg: ["SEMANGAT! Kamu pasti bisa!", "Woof! Aku percaya padamu!", "Ayo teruskan! Sedikit lagi!"],
+                svg: (
+                    <g>
+                        <path d="M50 75 Q25 145 55 145 Q85 145 75 75 M150 75 Q175 145 145 145 Q115 145 125 75" fill="#C4A484" stroke="#332D29" strokeWidth="4"/>
+                        <path d="M45 105 C45 55 155 55 155 105 C155 155 125 175 100 175 C75 175 45 155 45 105" fill="#F4F1E6" stroke="#332D29" strokeWidth="4"/>
+                        <circle cx="78" cy="105" r="20" fill="#1A1A1A"/><circle cx="122" cy="105" r="20" fill="#1A1A1A"/>
+                        <circle cx="72" cy="98" r="5" fill="white"/><circle cx="116" cy="98" r="5" fill="white"/>
+                        <ellipse cx="100" cy="125" rx="8" ry="6" fill="#332D29"/>
+                    </g>
+                )
+            },
+            rabbit: {
+                name: "MOCHI", emoji: "🐰",
+                msg: ["Belajar pelan-pelan saja.", "Telingaku siap mendengarmu!", "Jangan lupa istirahat ya."],
+                svg: (
+                    <g>
+                        <path d="M70 60 Q50 -40 85 50 M130 60 Q150 -40 115 50" fill="#FFB1B1" stroke="#332D29" strokeWidth="4"/>
+                        <path d="M45 105 C45 55 155 55 155 105 C155 155 125 175 100 175 C75 175 45 155 45 105" fill="#FFFFFF" stroke="#332D29" strokeWidth="4"/>
+                        <circle cx="78" cy="105" r="20" fill="#1A1A1A"/><circle cx="122" cy="105" r="20" fill="#1A1A1A"/>
+                        <circle cx="72" cy="98" r="5" fill="white"/><circle cx="116" cy="98" r="5" fill="white"/>
+                        <ellipse cx="100" cy="122" rx="6" ry="4" fill="#FFB1B1" stroke="#332D29" strokeWidth="2"/>
+                    </g>
+                )
+            },
+            duck: {
+                name: "QUACKER", emoji: "🐤",
+                msg: ["Kwek! Ayo taklukkan buku!", "Ceria terus belajarnya!", "Kamu itu pintar!"],
+                svg: (
+                    <g>
+                        <path d="M45 105 C45 55 155 55 155 105 C155 155 125 175 100 175 C75 175 45 155 45 105" fill="#FFD93D" stroke="#332D29" strokeWidth="4"/>
+                        <circle cx="78" cy="105" r="18" fill="#1A1A1A"/><circle cx="122" cy="105" r="18" fill="#1A1A1A"/>
+                        <circle cx="72" cy="98" r="4" fill="white"/><circle cx="116" cy="98" r="4" fill="white"/>
+                        <path d="M85 120 Q100 145 115 120 Z" fill="#FF8B13" stroke="#332D29" strokeWidth="2"/>
+                    </g>
+                )
+            },
+            panda: {
+                name: "BAKPAO", emoji: "🐼",
+                msg: ["Tetap tenang, fokus!", "Kunci sukses adalah fokus.", "Aku bangga padamu."],
+                svg: (
+                    <g>
+                        <circle cx="65" cy="65" r="22" fill="#1A1A1A" stroke="#332D29" strokeWidth="4"/>
+                        <circle cx="135" cy="65" r="22" fill="#1A1A1A" stroke="#332D29" strokeWidth="4"/>
+                        <path d="M45 105 C45 55 155 55 155 105 C155 155 125 175 100 175 C75 175 45 155 45 105" fill="#FFFFFF" stroke="#332D29" strokeWidth="4"/>
+                        <ellipse cx="75" cy="105" rx="20" ry="24" fill="#1A1A1A" transform="rotate(15 75 105)"/>
+                        <ellipse cx="125" cy="105" rx="20" ry="24" fill="#1A1A1A" transform="rotate(-15 125 105)"/>
+                        <circle cx="75" cy="100" r="6" fill="white"/><circle cx="125" cy="100" r="6" fill="white"/>
+                        <ellipse cx="100" cy="125" rx="8" ry="5" fill="#1A1A1A"/>
+                    </g>
+                )
+            }
+        };
+
+        const shopItems = [
+            { id: 'acc-glasses', emoji: '👓', price: 0, label: 'Kacamata' },
+            { id: 'acc-book', emoji: '📖', price: 30, label: 'Buku' },
+            { id: 'acc-ribbon', emoji: '🎀', price: 50, label: 'Pita' },
+            { id: 'acc-hat', emoji: '🎩', price: 100, label: 'Topi' },
+            { id: 'acc-crown', emoji: '👑', price: 200, label: 'Mahkota' }
+        ];
+
+        function App() {
+            const [data, setData] = useState(() => {
+                const saved = localStorage.getItem('ruang_belajar_full_v3');
+                return saved ? JSON.parse(saved) : {
+                    xp: 0,
+                    level: 1,
+                    coins: 100,
+                    owned: ['acc-glasses'],
+                    selected: ['acc-glasses'],
+                    buddy: 'cat',
+                    tasks: [],
+                    activeAtmosphere: null
+                };
+            });
+
+            const [timeLeft, setTimeLeft] = useState(25 * 60);
+            const [isRunning, setIsRunning] = useState(false);
+            const [newTaskText, setNewTaskText] = useState("");
+            const timerRef = useRef(null);
+            const audioCtxRef = useRef(null);
+            const audioSourceRef = useRef(null);
+
+            useEffect(() => {
+                localStorage.setItem('ruang_belajar_full_v3', JSON.stringify(data));
+            }, [data]);
+
+            // Audio Logic
+            const setupAudio = (type) => {
+                if (!audioCtxRef.current) audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+                const ctx = audioCtxRef.current;
+                if (audioSourceRef.current) { audioSourceRef.current.stop(); audioSourceRef.current = null; }
+                if (!type) return;
+
+                const bufferSize = 2 * ctx.sampleRate;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const channelData = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) channelData[i] = Math.random() * 2 - 1;
+
+                const source = ctx.createBufferSource();
+                source.buffer = buffer; source.loop = true;
+                const filter = ctx.createBiquadFilter();
+                const gain = ctx.createGain();
+                gain.gain.value = 0.04;
+
+                if (type === 'rain') { filter.type = 'lowpass'; filter.frequency.value = 450; }
+                else if (type === 'waves') { filter.type = 'lowpass'; filter.frequency.value = 250; }
+                else { filter.type = 'bandpass'; filter.frequency.value = 900; gain.gain.value = 0.02; }
+
+                source.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+                source.start();
+                audioSourceRef.current = source;
+            };
+
+            const toggleAtmosphere = (type) => {
+                const newAtmosphere = data.activeAtmosphere === type ? null : type;
+                setupAudio(newAtmosphere);
+                setData(prev => ({ ...prev, activeAtmosphere: newAtmosphere }));
+            };
+
+            const toggleAccessory = (accId, price) => {
+                if (!data.owned.includes(accId)) {
+                    if (data.coins >= price) {
+                        setData(prev => ({
+                            ...prev,
+                            coins: prev.coins - price,
+                            owned: [...prev.owned, accId],
+                            selected: [...prev.selected, accId]
+                        }));
+                    }
+                } else {
+                    const isSelected = data.selected.includes(accId);
+                    const newSelected = isSelected ? data.selected.filter(i => i !== accId) : [...data.selected, accId];
+                    setData(prev => ({ ...prev, selected: newSelected }));
+                }
+            };
+
+            // Gain XP and Coins
+            const gainRewards = (xpAmount, coinAmount) => {
+                setData(prev => {
+                    let newXp = prev.xp + xpAmount;
+                    let newLevel = prev.level;
+                    let newCoins = prev.coins + coinAmount;
+                    while (newXp >= 100) {
+                        newXp -= 100;
+                        newLevel += 1;
+                    }
+                    return { ...prev, xp: newXp, level: newLevel, coins: newCoins };
+                });
+            };
+
+            const handleTimerFinish = () => {
+                gainRewards(100, 50); // Timer 25 menit: 100 XP, 50 Koin
+                setTimeLeft(25 * 60);
+                setIsRunning(false);
+            };
+
+            const toggleTask = (taskId) => {
+                const task = data.tasks.find(t => t.id === taskId);
+                if (!task || task.completed) return;
+                
+                // Coret task: 20 XP, 5 Koin
+                gainRewards(20, 5);
+                const newTasks = data.tasks.map(t => t.id === taskId ? { ...t, completed: true } : t);
+                setData(prev => ({ ...prev, tasks: newTasks }));
+            };
+
+            useEffect(() => {
+                if (isRunning && timeLeft > 0) {
+                    timerRef.current = setInterval(() => setTimeLeft(p => p - 1), 1000);
+                } else if (timeLeft === 0) {
+                    clearInterval(timerRef.current);
+                    handleTimerFinish();
+                } else {
+                    clearInterval(timerRef.current);
+                }
+                return () => clearInterval(timerRef.current);
+            }, [isRunning, timeLeft]);
+
+            const activeBuddy = animals[data.buddy];
+            const formatTime = (s) => `${Math.floor(s/60)}:${(s%60).toString().padStart(2, '0')}`;
+
+            return (
+                <div className="min-h-screen flex justify-center p-4 pb-20 relative overflow-x-hidden">
+                    
+                    {/* Effects Background */}
+                    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+                        {data.activeAtmosphere === 'rain' && Array.from({length: 30}).map((_, i) => (
+                            <div key={i} className="rain-drop" style={{ left: `${Math.random()*100}%`, animationDelay: `${Math.random()*2}s` }} />
+                        ))}
+                        {data.activeAtmosphere === 'wind' && Array.from({length: 10}).map((_, i) => (
+                            <div key={i} className="leaf text-2xl" style={{ left: `${Math.random()*100}%`, animationDelay: `${Math.random()*4}s` }}>
+                                {['🍃','🍂','🌿'][Math.floor(Math.random()*3)]}
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="w-full max-w-[440px] flex flex-col gap-4 z-10">
+                        {/* Header */}
+                        <div className="flex justify-between items-end px-2 mt-4">
+                            <div>
+                                <h1 className="text-3xl font-black text-[#332D29] leading-none mb-1">RUANG <br/> BELAJAR ☁️</h1>
+                                <span className="text-[10px] font-black uppercase opacity-40 tracking-widest">Teman Fokus Setiamu</span>
+                            </div>
+                            <div className="bg-white border-[3px] border-[#332D29] px-4 py-1 rounded-2xl flex items-center gap-2 shadow-[3px_3px_0_#332D29]">
+                                <span className="text-xs font-black">🪙 {data.coins}</span>
+                            </div>
+                        </div>
+
+                        {/* Level Progress */}
+                        <div className="bg-white border-[4px] border-[#332D29] rounded-[30px] p-4 shadow-[6px_6px_0_#AEE2FF]">
+                            <div className="flex justify-between text-[10px] font-black mb-2 px-1">
+                                <span className="opacity-50 uppercase">Level {data.level}</span>
+                                <span className="opacity-50">{data.xp}/100 XP</span>
+                            </div>
+                            <div className="h-4 bg-[#F4F1E6] rounded-full border-[2px] border-[#332D29] overflow-hidden">
+                                <div className="h-full bg-[#AEE2FF] transition-all duration-700" style={{ width: `${data.xp}%` }} />
+                            </div>
+                        </div>
+
+                        {/* Character Area */}
+                        <div className="bg-white border-[4px] border-[#332D29] rounded-[30px] shadow-[6px_6px_0_#AEE2FF] overflow-hidden">
+                            <div className="flex justify-center gap-3 pt-6 pb-2 overflow-x-auto scrollbar-hide px-4">
+                                {Object.keys(animals).map((key) => (
+                                    <button key={key} onClick={() => setData(prev => ({ ...prev, buddy: key }))}
+                                        className={`w-12 h-12 flex-shrink-0 border-[3px] border-[#332D29] rounded-xl flex items-center justify-center text-xl transition-all ${data.buddy === key ? 'bg-[#FFD93D] -translate-y-1 shadow-[0_3px_0_#332D29]' : 'bg-[#FDFBF0]'}`}>
+                                        {animals[key].emoji}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="h-[210px] flex justify-center items-center">
+                                <svg viewBox="0 -60 200 240" className="w-full h-full">
+                                    <g className="character-bounce">
+                                        <ellipse cx="100" cy="175" rx="45" ry="8" fill="#E9E4D4" opacity="0.5"/>
+                                        {activeBuddy.svg}
+                                        <g>
+                                            {data.selected.includes('acc-glasses') && <g><rect x="52" y="90" width="45" height="40" rx="12" fill="none" stroke="#332D29" strokeWidth="6"/><rect x="103" y="90" width="45" height="40" rx="12" fill="none" stroke="#332D29" strokeWidth="6"/><path d="M97 110 L103 110" stroke="#332D29" strokeWidth="6"/></g>}
+                                            {data.selected.includes('acc-hat') && <g><path d="M50 50 L150 50" stroke="#332D29" strokeWidth="8" strokeLinecap="round"/><path d="M65 50 L65 15 Q100 -5 135 15 L135 50" fill="#332D29"/></g>}
+                                            {data.selected.includes('acc-ribbon') && <g><circle cx="145" cy="65" r="10" fill="#FFB1B1" stroke="#332D29" strokeWidth="3"/><path d="M145 65 L130 55 L130 75 Z M145 65 L160 55 L160 75 Z" fill="#FFB1B1" stroke="#332D29" strokeWidth="3"/></g>}
+                                            {data.selected.includes('acc-book') && <g><rect x="75" y="140" width="50" height="40" rx="5" fill="#AEE2FF" stroke="#332D29" strokeWidth="4"/><path d="M85 150 L115 150 M85 160 L115 160" stroke="white" strokeWidth="3"/></g>}
+                                            {data.selected.includes('acc-crown') && <path d="M70 45 L60 20 L85 35 L100 10 L115 35 L140 20 L130 45 Z" fill="#FFD93D" stroke="#332D29" strokeWidth="3"/>}
+                                        </g>
+                                    </g>
+                                </svg>
+                            </div>
+
+                            <div className="px-6 pb-8">
+                                <div className="bg-[#FDFBF0] border-[3px] border-[#332D29] p-4 rounded-2xl text-center relative">
+                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#332D29] text-white text-[9px] px-3 py-0.5 rounded-full font-black tracking-widest">{activeBuddy.name}</div>
+                                    <p className="text-xs font-bold italic text-[#332D29]">"{activeBuddy.msg[Math.floor(Date.now()/10000) % activeBuddy.msg.length]}"</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Shop Section */}
+                        <div className="bg-white border-[4px] border-[#332D29] rounded-[30px] p-5 shadow-[6px_6px_0_#AEE2FF]">
+                            <div className="flex justify-between items-center mb-4 px-1">
+                                <h3 className="text-[10px] font-black uppercase tracking-widest opacity-40">Lemari Koleksi</h3>
+                                <button onClick={() => setData(prev => ({ ...prev, selected: [] }))} className="text-[9px] font-black text-red-400 uppercase">Lepas Semua</button>
+                            </div>
+                            <div className="grid grid-cols-5 gap-2">
+                                {shopItems.map(item => (
+                                    <button key={item.id} onClick={() => toggleAccessory(item.id, item.price)}
+                                        className={`h-14 flex flex-col items-center justify-center rounded-2xl border-[3px] border-[#332D29] transition-all relative
+                                            ${!data.owned.includes(item.id) ? 'bg-gray-100 opacity-60' : (data.selected.includes(item.id) ? 'bg-[#AEE2FF] -translate-y-1 shadow-[0_4px_0_#332D29]' : 'bg-white')}`}>
+                                        <span className="text-xl">{item.emoji}</span>
+                                        {!data.owned.includes(item.id) && <span className="absolute -bottom-2 bg-[#332D29] text-white text-[8px] px-1.5 rounded-md font-bold">🪙{item.price}</span>}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Ambient Sound Settings */}
+                        <div className="bg-white border-[4px] border-[#332D29] rounded-[30px] p-5 shadow-[6px_6px_0_#AEE2FF]">
+                            <h3 className="text-[10px] font-black uppercase tracking-widest mb-3 opacity-40 px-1">Atmosfer Fokus</h3>
+                            <div className="grid grid-cols-3 gap-2">
+                                {[{id:'rain',l:'🌧️ HUJAN'},{id:'waves',l:'🌊 OMBAK'},{id:'wind',l:'🍃 ANGIN'}].map(item => (
+                                    <button key={item.id} onClick={() => toggleAtmosphere(item.id)} 
+                                        className={`py-2 rounded-xl text-[9px] font-black transition-all border-[3px]
+                                            ${data.activeAtmosphere === item.id ? 'bg-[#AEE2FF] border-[#332D29]' : 'bg-[#FDFBF0] border-transparent opacity-60'}`}>
+                                        {item.l}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* TO DO LIST */}
+                        <div className="bg-white border-[4px] border-[#332D29] rounded-[30px] p-6 shadow-[6px_6px_0_#AEE2FF]">
+                            <h3 className="font-black text-sm mb-4">MISI HARI INI ✨</h3>
+                            <div className="flex gap-2 mb-4">
+                                <input type="text" value={newTaskText} onChange={(e) => setNewTaskText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && (()=>{
+                                    if (!newTaskText.trim()) return;
+                                    setData(prev => ({...prev, tasks: [{id:Date.now(), text:newTaskText, completed:false}, ...prev.tasks]}));
+                                    setNewTaskText("");
+                                })()}
+                                    placeholder="Apa yang mau dipelajari?" className="flex-1 p-3 bg-[#FDFBF0] rounded-xl border-[3px] border-[#F4F1E6] text-xs font-bold outline-none focus:border-[#AEE2FF]" />
+                                <button onClick={() => {
+                                    if (!newTaskText.trim()) return;
+                                    setData(prev => ({...prev, tasks: [{id:Date.now(), text:newTaskText, completed:false}, ...prev.tasks]}));
+                                    setNewTaskText("");
+                                }} className="bg-[#332D29] text-white w-12 rounded-xl font-black text-2xl">+</button>
+                            </div>
+                            <div className="space-y-2 max-h-56 overflow-y-auto scrollbar-hide">
+                                {data.tasks.map(task => (
+                                    <div key={task.id} className="flex items-center justify-between p-3 bg-[#FDFBF0] border-[3px] border-[#F4F1E6] rounded-2xl group transition-all">
+                                        <div className="flex items-center gap-3 font-bold text-xs flex-1">
+                                            <input type="checkbox" checked={task.completed} onChange={() => toggleTask(task.id)} className="w-5 h-5 accent-[#AEE2FF] cursor-pointer"/>
+                                            <span className={task.completed ? 'line-through opacity-30 text-gray-400' : 'text-[#332D29]'}>{task.text}</span>
+                                        </div>
+                                        <button onClick={() => setData(prev => ({...prev, tasks: prev.tasks.filter(t => t.id !== task.id)}))} className="text-red-300 hover:text-red-500 ml-2">✕</button>
+                                    </div>
+                                ))}
+                                {data.tasks.length === 0 && <div className="text-center py-4 text-[10px] font-bold opacity-30 italic">Belum ada tugas hari ini...</div>}
+                            </div>
+                        </div>
+
+                        {/* Timer Control */}
+                        <div className="bg-white border-[4px] border-[#332D29] rounded-[30px] p-8 shadow-[6px_6px_0_#AEE2FF] text-center mb-10">
+                            <div className="text-7xl font-black text-[#332D29] leading-none mb-6 tracking-tighter">
+                                {formatTime(timeLeft)}
+                            </div>
+                            <div className="flex justify-center gap-3">
+                                <button onClick={() => setIsRunning(!isRunning)} 
+                                    className="bg-[#332D29] text-white px-12 py-4 rounded-2xl font-black text-lg shadow-[0_6px_0_#000] active:translate-y-1 active:shadow-none transition-all">
+                                    {isRunning ? 'JEDA' : 'FOKUS'}
+                                </button>
+                                <button onClick={() => { setIsRunning(false); setTimeLeft(25*60); }} 
+                                    className="bg-gray-100 text-gray-400 px-6 rounded-2xl font-bold">
+                                    RESET
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
